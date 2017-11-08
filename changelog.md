@@ -1,7 +1,8 @@
 # Get System Report Release History
 (c) 2016-2017 Michal Zobec, ZOBEC Consulting. All Rights Reserved.  
 web: www.michalzobec.cz, mail: michal@zobec.net  
-License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) https://creativecommons.org/licenses/by-sa/4.0/
+License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)  
+https://creativecommons.org/licenses/by-sa/4.0/
 
 ## version 17.07.27.1
 - init version;
@@ -129,7 +130,6 @@ License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0
 - example configuration file get-systemreport-config-example.ps1;
 
 ## version 17.10.03.1
-- added Security Windows Eventlog (failed only);
 - renamed configuration value SkipCheckSSL to CheckSSL;
 
 ## version 17.10.17.1
@@ -139,18 +139,28 @@ License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0
 - code refactoring, better part of code for sending of email, error message to log file;
 - added DEBUG information about used account to log file;
 
-## version 17.11.05.1
+## version 17.11.05.1 (Public version on GitHub)
 - code refactoring, check if exist configuration variables;
 - code refactoring, checked PowerShell version for check of stopped services due incopatibility with PS 2.0;
 - code refactoring, cleaned some parts of code;
 - header content from PS script was moved to separate files readme.md and changelog.md;
 
+## version 17.11.08.1
+- added new section Windows Firewall Status;
+- added new section AntiVirus Status;
+- added new section Windows Task Scheduler Failed Tasks;
+- fixed bug in Stopped Services section; bad PowerShell version detection;
+- fixed bug in log file; bad PowerShell version detection;
+- code refactoring, minor changes;
+- small updates in files readme.md and changelog.md;
+
 # TODO
+- added Security Windows Eventlog (failed only);
+- fix problem with detection of Domain & WorkGroup;
 - fixed format for date and time;
 - red cell for uptime if uptime is not longer than 3 days;
 - add check of all required variables, if exists and content of variables (text, numbers, etc);
 - list of failed jobs in Windows Task Scheduler;
-- external configuration file in JSON;
 - integrate create-job.ps1/create-job-old.ps1 scripts as function;
 - disk free space warning under defined size;
 - empty values "" replaced by text label "(none)";

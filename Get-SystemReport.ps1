@@ -29,13 +29,13 @@ Set-StrictMode -Version Latest
 
 ######
 $ScriptName = "Get System Report"
-$ScriptVersion = "17.11.05.1"
+$ScriptVersion = "17.11.08.1"
 ######
 
 
 ######
 # External configuration file
-$ConfigurationFileName = "get-systemreport-config-example.ps1"
+$ConfigurationFileName = "get-systemreport-config-zobec.ps1"
 ######
 
 $ScriptDir = (Split-Path $myinvocation.MyCommand.Path)
@@ -76,7 +76,8 @@ Write-Host ""
 Write-Host "$ScriptName"
 Write-Host "Version $ScriptVersion"
 Write-Host "(c) 2016-2017 Michal Zobec, ZOBEC Consulting. All Rights Reserved."
-Write-Host "License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) https://creativecommons.org/licenses/by-sa/4.0/"
+Write-Host "License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)"
+Write-Host "https://creativecommons.org/licenses/by-sa/4.0/"
 Write-Host ""
 Write-Host "Initializing script"
 
@@ -141,6 +142,7 @@ $Temptime = ([wmi]'').ConvertToDateTime($WmiOs.LastBootUptime)
 $OsLastBoot = "$($Temptime.ToShortDateString()) $($Temptime.ToShortTimeString())"
 $UpTime = New-TimeSpan -Start $OsLastBoot -End $SystemTime
 $UpTime = "$($UpTime.days) days $($Uptime.hours) hours $($Uptime.minutes) minutes"
+$PSVersion = $PSVersionTable.PSVersion.Major
 
 
 ######
@@ -152,8 +154,7 @@ Write-Log -LogFile $LogFile -Message "  SystemTime: $SystemTime" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  UpTime: $UpTime" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  Report filename: $HtmlFile" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  Log filename: $LogFile" -Level DEBUG
-# Write-Log -LogFile $LogFile -Message "  ExtPsCheckSslFile: $ExtPsCheckSslFile" -Level DEBUG
-Write-Log -LogFile $LogFile -Message "  PowerShell version: $PSVersionTable.PSVersion" -Level DEBUG
+Write-Log -LogFile $LogFile -Message "  PowerShell version: $PSVersion" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  ExtPsWinPkFile: $ExtPsWinPkFile" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  Send email: $sendmail" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  Used account: $env:USERDOMAIN\$env:USERNAME" -Level DEBUG
@@ -162,7 +163,7 @@ Write-Log -LogFile $LogFile -Message "  Used account: $env:USERDOMAIN\$env:USERN
 ######
 # Check configuration variables
 try {
-    Get-Variable WindowsPkInReport, ApplicationCritical, ApplicationError, ApplicationWarning, SystemCritical, SystemError, SystemWarning, Hours, CriticalFreeDiskSpace, SkipEventIDlist, SendMail -Scope Global -ErrorAction Stop | Out-Null
+    Get-Variable WindowsPkInReport, ApplicationCritical, ApplicationError, ApplicationWarning, SystemCritical, SystemError, SystemWarning, Hours, CriticalFreeDiskSpace, SkipEventIDlist, SkipServicesName, SkipTaskName, SendMail -Scope Global -ErrorAction Stop | Out-Null
 }
 catch [System.Management.Automation.ItemNotFoundException] {
     Write-Warning $_
@@ -214,21 +215,21 @@ else {
 try {
     $osinfo = Get-WmiObject Win32_OperatingSystem -ComputerName $HostName -ErrorAction Stop | 
         Select-Object @{Name = 'Operating System'; Expression = {$_.Caption}},
-    @{Name = 'Architecture'; Expression = {$_.OSArchitecture}},
+    @{Name = "Architecture"; Expression = {$_.OSArchitecture}},
     Version,
-    @{Name = 'Install Date'; Expression = {
+    @{Name = "Install Date"; Expression = {
             $installdate = [datetime]::ParseExact($_.InstallDate.SubString(0, 8), "yyyyMMdd", $null);
             $installdate.ToShortDateString()
         }
     },
-    @{Name = 'Last Boot'; Expression = {$OsLastBoot}},
-    @{Name = 'UpTime'; Expression = {$UpTime}},
-    @{Name = 'Time Zone'; Expression = {$TimeZone}},    
-    @{Name = 'Device Role (Computer Description)'; Expression = {$DeviceRole}},
-    @{Name = 'Registered User'; Expression = {$_.RegisteredUser}},
-    @{Name = 'Registered Organization'; Expression = {$_.Organization}},
-    @{Name = 'Windows Serial Number'; Expression = {$_.SerialNumber}},
-    @{Name = 'Product Key'; Expression = {$WinProductKey}}
+    @{Name = "Last Boot"; Expression = {$OsLastBoot}},
+    @{Name = "UpTime"; Expression = {$UpTime}},
+    @{Name = "Time Zone"; Expression = {$TimeZone}},    
+    @{Name = "Device Role (Computer Description)"; Expression = {$DeviceRole}},
+    @{Name = "Registered User"; Expression = {$_.RegisteredUser}},
+    @{Name = "Registered Organization"; Expression = {$_.Organization}},
+    @{Name = "Windows Serial Number"; Expression = {$_.SerialNumber}},
+    @{Name = "Product Key"; Expression = {$WinProductKey}}
 
     $HtmlBody += $osinfo | ConvertTo-Html -Fragment
     $HtmlBody += $Spacer
@@ -247,14 +248,123 @@ Write-Log -LogFile $LogFile -Message "  Collecting Stopped Services Information"
 $SubHead = "<h2>Stopped Services Information</h2>"
 $HtmlBody += $SubHead
 
-if (!($PSVersionTable.PSVersion -le "2.0")) {
-    $HtmlBody += "<p>Unsupported PowerShell version $PSVersionTable.PSVersion.</p>"
+if ($PSVersionTable.PSVersion.Major -le 2) {
+    $HtmlBody += "<p>Unsupported PowerShell version $PSVersion.</p>"
     $HtmlBody += $Spacer
 }
-if (!($PSVersionTable.PSVersion -ge "3.0")) {
+if ($PSVersionTable.PSVersion.Major -ge 3) {
     try {
         $StoppedServices = Get-Service | Where-Object {$_.StartType -eq "Automatic"} | Where-Object {$_.Status -eq "stopped"} | Select-Object $ServicesProps
+        $StoppedServices = $StoppedServices | Where-Object {$_.Name -notmatch $SkipServicesName}
+        
         $HtmlBody += $StoppedServices | ConvertTo-Html -Fragment
+        $HtmlBody += $Spacer
+    }
+    catch {
+        Write-Warning $_.Exception.Message
+        $HtmlBody += "<p>An error was encountered. $($_.Exception.Message)</p>"
+        $HtmlBody += $Spacer
+    }
+}    
+
+
+######
+# Windows Firewall Status
+Write-Host "Collecting Windows Firewall Status"
+Write-Log -LogFile $LogFile -Message "  Collecting Windows Firewall Status"
+$SubHead = "<h2>Windows Firewall Status</h2>"
+$HtmlBody += $SubHead
+
+if ($PSVersionTable.PSVersion.Major -le 2) {
+    $HtmlBody += "<p>Unsupported PowerShell version $PSVersion.</p>"
+    $HtmlBody += $Spacer
+}
+if ($PSVersionTable.PSVersion.Major -ge 3) {
+    try {
+        $FirewallStatus = Get-NetFirewallProfile -ErrorAction Stop | 
+        Select-Object @{Name = "Firewall Profile Name"; Expression = {$_.Name}},
+        Enabled, DefaultInboundAction, DefaultOutboundAction, LogAllowed, LogBlocked, LogIgnored
+        
+
+        $HtmlBody += $FirewallStatus | ConvertTo-Html -Fragment
+        $HtmlBody += $Spacer
+    }
+    catch {
+        Write-Warning $_.Exception.Message
+        $HtmlBody += "<p>An error was encountered. $($_.Exception.Message)</p>"
+        $HtmlBody += $Spacer
+    }
+}    
+
+
+######
+# Windows Firewall Status
+Write-Host "Collecting AntiVirus Status"
+Write-Log -LogFile $LogFile -Message "  Collecting AntiVirus Status"
+$SubHead = "<h2>AntiVirus Status</h2>"
+$HtmlBody += $SubHead
+
+if ($PSVersionTable.PSVersion.Major -le 2) {
+    $HtmlBody += "<p>Unsupported PowerShell version $PSVersion.</p>"
+    $HtmlBody += $Spacer
+}
+if ($PSVersionTable.PSVersion.Major -ge 3) {
+    try {
+        $AntiVirusProduct = Get-WmiObject -Namespace root/SecurityCenter2 -Class AntiVirusProduct -ComputerName $HostName -ErrorAction Stop
+
+        #Switch to determine the status of antivirus definitions and real-time protection. 
+        #Write-Output $AntiVirusProduct.productState
+        switch ($AntiVirusProduct.ProductState) { 
+            "262144" {$DStatus = "Up to date" ;$RTPStatus = "Disabled"} 
+            "262160" {$DStatus = "Out of date" ;$RTPStatus = "Disabled"} 
+            "266240" {$DStatus = "Up to date" ;$RTPStatus = "Enabled"} 
+            "266256" {$DStatus = "Out of date" ;$RTPStatus = "Enabled"} 
+            "393216" {$DStatus = "Up to date" ;$RTPStatus = "Disabled"} 
+            "393232" {$DStatus = "Out of date" ;$RTPStatus = "Disabled"} 
+            "393488" {$DStatus = "Out of date" ;$RTPStatus = "Disabled"} 
+            "397312" {$DStatus = "Up to date" ;$RTPStatus = "Enabled"} 
+            "397328" {$DStatus = "Out of date" ;$RTPStatus = "Enabled"} 
+            "397584" {$DStatus = "Out of date" ;$RTPStatus = "Enabled"} 
+            "397568" {$DStatus = "Up to date"; $RTPStatus = "Enabled"}
+            "393472" {$DStatus = "Up to date" ;$RTPStatus = "Disabled"}
+        default {$DStatus = "Unknown" ;$RTPStatus = "Unknown"} 
+        }
+        
+        $AntiVirusStatus = New-Object PSObject
+        $AntiVirusStatus | Add-Member NoteProperty -Name "Antivirus name" -Value $AntiVirusProduct.DisplayName
+        $AntiVirusStatus | Add-Member NoteProperty -Name "Definition status" -Value $DStatus
+        $AntiVirusStatus | Add-Member NoteProperty -Name "Real-time protection status" -Value $RTPStatus
+        
+        $HtmlBody += $AntiVirusStatus | ConvertTo-Html -Fragment
+        $HtmlBody += $Spacer
+    }
+    catch {
+        Write-Warning $_.Exception.Message
+        $HtmlBody += "<p>An error was encountered. $($_.Exception.Message)</p>"
+        $HtmlBody += $Spacer
+    }
+}    
+
+
+######
+# Windows Task Scheduler Failed Tasks
+Write-Host "Collecting Windows Task Scheduler Failed Tasks"
+Write-Log -LogFile $LogFile -Message "  Collecting Windows Task Scheduler Failed Tasks"
+$SubHead = "<h2>Windows Task Scheduler Failed Tasks</h2>"
+$Comment = "<p>Following tasks last run failed and maybe needs your attention.</p>"
+$HtmlBody += $SubHead
+$HtmlBody += $Comment
+
+if ($PSVersionTable.PSVersion.Major -le 2) {
+    $HtmlBody += "<p>Unsupported PowerShell version $PSVersion.</p>"
+    $HtmlBody += $Spacer
+}
+if ($PSVersionTable.PSVersion.Major -ge 3) {
+    try {
+        $FailedTasks = Get-ScheduledTask | Where State -ne "Disabled" | Get-ScheduledTaskInfo | Where LastTaskResult -gt "0" | Select-Object TaskName,TaskPath,LastRunTime,LastTaskResult,NextRunTime,NumberofMissedRuns
+        $FailedTasks = $FailedTasks | Where-Object {$_.TaskName -notmatch $SkipTaskName}
+
+        $HtmlBody += $FailedTasks | ConvertTo-Html -Fragment
         $HtmlBody += $Spacer
     }
     catch {
@@ -272,12 +382,12 @@ Write-Log -LogFile $LogFile -Message "  Collecting Network Information"
 $SubHead = "<h2>Network Information</h2>"
 $HtmlBody += $SubHead
 try {
-    $csinfo = Get-WmiObject Win32_ComputerSystem -ComputerName $HostName -ErrorAction Stop |
+    $HWInfo = Get-WmiObject Win32_ComputerSystem -ComputerName $HostName -ErrorAction Stop |
         Select-Object Name,
     @{Name = "DnsHostName"; Expression = {$FullDNSName}},
     Domain
 
-    $HtmlBody += $csinfo | ConvertTo-Html -Fragment
+    $HtmlBody += $HWInfo | ConvertTo-Html -Fragment
     $HtmlBody += $Spacer
 }
 catch {
@@ -297,20 +407,20 @@ Write-Log -LogFile $LogFile -Message "  Collecting Hardware Information"
 $SubHead = "<h3>Hardware Information</h3>"
 $HtmlBody += $SubHead
 try {
-    $csinfo = Get-WmiObject Win32_ComputerSystem -ComputerName $HostName -ErrorAction Stop |
+    $HWInfo = Get-WmiObject Win32_ComputerSystem -ComputerName $HostName -ErrorAction Stop |
         Select-Object Manufacturer, Model,
-    @{Name = 'Serial Number'; Expression = {(Get-WmiObject win32_bios).SerialNumber}},
-    @{Name = 'CPU Name'; Expression = {(Get-WmiObject win32_Processor).Name}},
-    @{Name = 'Physical Processors'; Expression = {$_.NumberOfProcessors}},
-    @{Name = 'Physical Cores'; Expression = {(Get-WmiObject win32_Processor).NumberOfCores}},
-    @{Name = 'All Cores'; Expression = {$_.NumberOfLogicalProcessors}},
-    @{Name = 'Physical Memory (MB)'; Expression = {
+    @{Name = "Serial Number"; Expression = {(Get-WmiObject win32_bios).SerialNumber}},
+    @{Name = "CPU Name"; Expression = {(Get-WmiObject win32_Processor).Name}},
+    @{Name = "Physical Processors"; Expression = {$_.NumberOfProcessors}},
+    @{Name = "Physical Cores"; Expression = {(Get-WmiObject win32_Processor).NumberOfCores}},
+    @{Name = "All Cores"; Expression = {$_.NumberOfLogicalProcessors}},
+    @{Name = "Physical Memory (MB)"; Expression = {
             $tpm = $_.TotalPhysicalMemory / 1MB;
             "{0:F0}" -f $tpm
         }
     }
 
-    $HtmlBody += $csinfo | ConvertTo-Html -Fragment
+    $HtmlBody += $HWInfo | ConvertTo-Html -Fragment
     $HtmlBody += $Spacer
 }
 catch {
@@ -329,8 +439,8 @@ $HtmlBody += $SubHead
 try {
     $DiskDriveInfo = Get-WmiObject -Class Win32_DiskDrive -filter "MediaType='Fixed hard disk media' or MediaType='External hard disk media'" -Namespace "root\CIMV2" -ComputerName $HostName -ErrorAction Stop |
         Select-Object Caption, InterfaceType, MediaType, SerialNumber, Name, SCSILogicalUnit, SCSIPort, Partitions,
-    @{Expression = {[math]::round(($_.Size / 1073741824), 2)}; Label = "Total Size (GB)"} |
-        Sort-Object Name        
+    @{Label = "Total Size (GB)"; Expression = {[math]::round(($_.Size / 1073741824), 2)}} |
+        Sort-Object Name
 
     $HtmlBody += $DiskDriveInfo | ConvertTo-Html -Fragment
     $HtmlBody += $Spacer
@@ -375,7 +485,7 @@ $HtmlBody += $SubHead
 ######
 # Security events
 # StartTime last 14 days?
-# Get-WinEvent -ComputerName dc01 -FilterHashtable @{logname='security';id=4740}
+# Get-WinEvent -FilterHashtable @{logname='security';id=4740}
 # filtered id
 # 4740 account was locked
 # Get-EventLog Security -EntryType FailureAudit

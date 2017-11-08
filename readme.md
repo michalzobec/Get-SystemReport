@@ -1,7 +1,8 @@
 # Get System Report Readme
 (c) 2016-2017 Michal Zobec, ZOBEC Consulting. All Rights Reserved.  
 web: www.michalzobec.cz, mail: michal@zobec.net  
-License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) https://creativecommons.org/licenses/by-sa/4.0/
+License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)  
+https://creativecommons.org/licenses/by-sa/4.0/
 
 # HISTORY
 Release notes can find in file changelog.md.
@@ -51,3 +52,6 @@ HTML table with selected level of events in filename format <HOSTNAME>-<DATE>-<T
 # EXAMPLE
 C:\> get-systemreport.ps1
 
+# THANKS
+- Detection of AntiVirus #1 https://www.404techsupport.com/2015/04/27/powershell-script-detect-antivirus-product-and-status/
+- Detection of AntiVirus #2 http://neophob.com/2010/03/wmi-query-windows-securitycenter2/

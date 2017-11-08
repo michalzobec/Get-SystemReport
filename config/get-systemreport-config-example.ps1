@@ -22,6 +22,10 @@ $CriticalFreeDiskSpace = "22"
 # Event ID 400, Message text "Exchange Server, cross-forest Availability service that can fill request for mailbox";
 # Event ID 4999, Message text "Exchange Server, Watson report about to be sent to dw20.exe";
 $SkipEventIDlist = (400, 4999)
+# skip services name
+$SkipServicesName = ("Garmin Device Interaction Service", "DoSvc")
+# skip windows tasks/jobs
+$SkipTaskName = ("Notifications", "SilentCleanup")
 ######
 
 ######
