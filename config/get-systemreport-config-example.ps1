@@ -26,6 +26,7 @@ $SkipEventIDlist = (400, 4999)
 $SkipServicesName = ("Garmin Device Interaction Service", "DoSvc")
 # skip windows tasks/jobs
 $SkipTaskName = ("Notifications", "SilentCleanup")
+# custom variables - end
 ######
 
 ######

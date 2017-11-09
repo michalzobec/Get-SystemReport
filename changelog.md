@@ -4,6 +4,11 @@ web: www.michalzobec.cz, mail: michal@zobec.net
 License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)  
 https://creativecommons.org/licenses/by-sa/4.0/
 
+# DOCUMENTATION
+Documentation you can find in file [ReadMe.md](https://github.com/michalzobec/PowerShell/blob/master/Get-SystemReport/readme.md).
+
+# Release History
+
 ## version 17.07.27.1
 - init version;
 
@@ -145,7 +150,7 @@ https://creativecommons.org/licenses/by-sa/4.0/
 - code refactoring, cleaned some parts of code;
 - header content from PS script was moved to separate files readme.md and changelog.md;
 
-## version 17.11.08.1
+## version 17.11.08.1 (Public version on GitHub)
 - added new section Windows Firewall Status;
 - added new section AntiVirus Status;
 - added new section Windows Task Scheduler Failed Tasks;
@@ -153,6 +158,14 @@ https://creativecommons.org/licenses/by-sa/4.0/
 - fixed bug in log file; bad PowerShell version detection;
 - code refactoring, minor changes;
 - small updates in files readme.md and changelog.md;
+
+## version 17.11.09.1 (Public version on GitHub)
+- fixed bug in public release of script to configuration file;
+- added information about used configuration file to script output;
+- added information about used configuration file to log file;
+- added two example reports to /examples/ folder; more information about example reports you can find in [ReadMe.md](https://github.com/michalzobec/PowerShell/blob/master/Get-SystemReport/readme.md);
+- updated/extended example configuration file;
+- documentation update in files readme.md and changelog.md;
 
 # TODO
 - added Security Windows Eventlog (failed only);

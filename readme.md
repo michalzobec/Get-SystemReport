@@ -1,16 +1,19 @@
-# Get System Report Readme
+# Get System Report Documentation
 (c) 2016-2017 Michal Zobec, ZOBEC Consulting. All Rights Reserved.  
 web: www.michalzobec.cz, mail: michal@zobec.net  
 License: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)  
 https://creativecommons.org/licenses/by-sa/4.0/
 
 # HISTORY
-Release notes can find in file changelog.md.
+Release notes can find in file [ChangeLog.md](https://github.com/michalzobec/PowerShell/blob/master/Get-SystemReport/changelog.md).
 
 # FEATURES
 - integrated basic system report: Hardware Information, Windows Information, Network Information;
 - Windows product key (in Windows Information Section) is now possibly not include to report;
 - Windows Information: uptime, last boot time;
+- Windows Firewall Status;
+- AntiVirus Status;
+- Windows Task Scheduler Failed Tasks;
 - collect of windows eventlog from defined time (from 24 hours back to actual time);
 - collect of windows eventlog from selected logs: Application, System;
 - collect of windows eventlog of the selected level: Critical, Error, Warning;
@@ -27,10 +30,14 @@ Release notes can find in file changelog.md.
 - script runs only locally;
 - support script create-job.ps1 for creation of job in windows task scheduler;
 
+# EXAMPLE REPORT
+- example report for Windows 10 (virtual platform / hyper-v) /examples/[Example-Report-01.html](https://github.com/michalzobec/PowerShell/blob/master/Get-SystemReport/examples/example-report-01.html);
+- example report for Windows Server 2016 (virtual platform / hyper-v) /examples/[Example-Report-02.html](https://github.com/michalzobec/PowerShell/blob/master/Get-SystemReport/examples/example-report-02.html);
+
 # QUICK START
 - check and change settings in custom variables;
 - test run with or without sending of mail;
-- "install" as job in Windows Task Scheduler via create-job.ps1 suport script;
+- "install" as job in Windows Task Scheduler via create-job.ps1 support script;
 
 # KNOWN PROBLEMS
 - (none);
@@ -50,7 +57,7 @@ Release notes can find in file changelog.md.
 HTML table with selected level of events in filename format <HOSTNAME>-<DATE>-<TIME>.html.
 
 # EXAMPLE
-C:\> get-systemreport.ps1
+> C:\> get-systemreport.ps1
 
 # THANKS
 - Detection of AntiVirus #1 https://www.404techsupport.com/2015/04/27/powershell-script-detect-antivirus-product-and-status/

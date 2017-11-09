@@ -18,7 +18,7 @@ Release notes is in file changelog.md.
 HTML table with selected level of events in filename format <HOSTNAME>-<DATE>-<TIME>.html.
 
 .EXAMPLE
-C:\> get-systemreport.ps1
+C:\> Get-SystemReport.ps1
 
 .LINK
 http://www.michalzobec.cz/
@@ -29,13 +29,13 @@ Set-StrictMode -Version Latest
 
 ######
 $ScriptName = "Get System Report"
-$ScriptVersion = "17.11.08.1"
+$ScriptVersion = "17.11.09.1"
 ######
 
 
 ######
 # External configuration file
-$ConfigurationFileName = "get-systemreport-config-zobec.ps1"
+$ConfigurationFileName = "Get-SystemReport-Config-Example.ps1"
 ######
 
 $ScriptDir = (Split-Path $myinvocation.MyCommand.Path)
@@ -83,7 +83,7 @@ Write-Host "Initializing script"
 
 # Definition of the log file - save method without subdirectory
 $LogDate = Get-Date -Format "yyyyMMdd"
-$LogFile = $ScriptDir + "\get-systemreport-log-$LogDate.txt"
+$LogFile = $ScriptDir + "\Get-SystemReport-log-$LogDate.txt"
 
 $LogFileDir = $ScriptDir + "\logs"
 if (!(Test-Path $LogFileDir -pathType container)) {
@@ -98,7 +98,7 @@ if (!(Test-Path $LogFileDir -pathType container)) {
 }
 
 # Redefinition of the log file with LogFileDir
-$LogFile = $LogFileDir + "\get-systemreport-log-$LogDate.txt"
+$LogFile = $LogFileDir + "\Get-SystemReport-log-$LogDate.txt"
 
 $CfgFilePath = $ScriptDir + "\config\$ConfigurationFileName"
 if (!(Test-Path $CfgFilePath)) {
@@ -107,6 +107,7 @@ if (!(Test-Path $CfgFilePath)) {
     Write-Log -LogFile $LogFile -Message "  Unexpected exit." -Level ERROR
     exit
 }
+Write-Host "Configuration file $ConfigurationFileName"
 . $CfgFilePath
 
 # Environment
@@ -153,6 +154,7 @@ Write-Log -LogFile $LogFile -Message "  OsLastBoot: $OsLastBoot" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  SystemTime: $SystemTime" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  UpTime: $UpTime" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  Report filename: $HtmlFile" -Level DEBUG
+Write-Log -LogFile $LogFile -Message "  Configuration file: $ConfigurationFileName" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  Log filename: $LogFile" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  PowerShell version: $PSVersion" -Level DEBUG
 Write-Log -LogFile $LogFile -Message "  ExtPsWinPkFile: $ExtPsWinPkFile" -Level DEBUG
